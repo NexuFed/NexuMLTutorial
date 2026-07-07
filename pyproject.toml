@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexuml-tutorial"
+version = "0.1.0"
+description = "Tutorial library for using NexuML"
+requires-python = ">=3.12"
+dependencies = [
+    "nexuml>=0.1.0",
+    "nexuml-library>=0.1.0",
+]
+
+[project.entry-points."nexuml.libraries"]
+nexuml-tutorial = "nexuml-tutorial"
+
+[tool.hatch.build.targets.wheel]
+packages = ["library"]

@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "streetsidesoftware.code-spell-checker",
+        "google.colab",
+        "ms-toolsai.datawrangler",
+        "ms-toolsai.jupyter",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "astral-sh.ty",
+        "redhat.vscode-yaml",
+    ]
+}
