@@ -7,7 +7,7 @@ from nexuml.core.types import LayerSpec, PipelineSpec
 
 def resnet_classifier(
     num_classes: int = 10,
-    label_key: str = "class_labels",
+    label_key: str = "class",
 ) -> PipelineSpec:
     """Create a PipelineSpec for a staged ResNet image classifier."""
     return PipelineSpec(

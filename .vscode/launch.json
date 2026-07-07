@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Train",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nexuml.cli.main",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
+                "QT_QPA_PLATFORM": "offscreen",
+                "MPLBACKEND": "Agg"
+            },
+            "args": [
+                "train", 
+                "${input:experimentConfigScenario}",
+                "--max-epochs", "${input:maxEpochs}"
+            ]
+        },
+    ],
+    "inputs": [
+        {
+            "id": "experimentConfigScenario",
+            "type": "pickString",
+            "description": "Choose the experiment config",
+            "default": "mnist-resnet",
+            "options": [
+                "mnist-resnet",
+            ]
+        },
+        {
+            "id": "maxEpochs",
+            "type": "promptString",
+            "description": "Number of epochs",
+            "default": "3",
+        },
+    ]
+}

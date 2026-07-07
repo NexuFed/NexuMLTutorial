@@ -8,7 +8,7 @@ from nexuml.data.dataset import NexuDataset
 
 @data_source("MNISTDataset")
 class MNISTDataset(NexuDataset):
-    LABEL_NAMES = ["class_labels"]
+    LABEL_NAMES = ["class"]
     MODALITY = "image"
 
     def __init__(
@@ -36,7 +36,7 @@ class MNISTDataset(NexuDataset):
         meta = pd.DataFrame(
             {
                 "idx": list(range(len(data))),
-                "class_labels": data.targets.tolist(),
+                self.LABEL_NAMES[0]: data.targets.tolist(),
             }
         )
 

@@ -16,7 +16,7 @@ class BCELoss(PipelineLayer):
         input_sizes: dict[str, tuple],
         keys_in: list[str],
         keys_out: list[str],
-        label_key: str = "class_labels",
+        label_key: str = "class",
         **kwargs: Any,
     ):
         super().__init__(

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from nexuml.core.discovery import scenario
 from nexuml.core.types import (
+    CallbackSpec,
+    CheckpointLoadSpec,
     DiagramSpec,
+    EvalAlgorithmSpec,
     EvaluationSpec,
     ExportSpec,
     LoggingSpec,
@@ -14,6 +17,7 @@ from nexuml.core.types import (
     SchedulerSpec,
     TensorBoardSpec,
     TrainingSpec,
+    TuningSpec,
 )
 
 from ..data.mnist import mnist_data
@@ -48,7 +52,20 @@ def mnist_resnet(
             lr=lr,
         ),
         data=mnist_data(download=True, root="data"),
-        evaluation=EvaluationSpec(metrics=[], algorithms=[], test_result_metrics="all"),
+        evaluation=EvaluationSpec(
+            metrics=["accuracy", "f1"],
+            algorithms=[
+                EvalAlgorithmSpec(
+                    type="tsne_visualizer",
+                    params={
+                        "feature_key": "pooled_embeddings",
+                        "label_key": "class",
+                        "max_samples": 1_000,
+                    },
+                ),
+            ],
+            test_result_metrics="all",
+        ),
         logging=LoggingSpec(
             tensorboard=TensorBoardSpec(log_dir="logs/tensorboard"),
             mlflow=MLflowSpec(
@@ -59,8 +76,44 @@ def mnist_resnet(
             dvclive=None,
             diagram=DiagramSpec(depth=2, output_dir="logs/diagrams"),
         ),
-        callbacks=[],
-        tuning=None,
-        checkpoint=None,
+        callbacks=[
+            CallbackSpec(
+                type="early_stopping",
+                params={"monitor": "val/loss", "patience": 5},
+            ),
+            CallbackSpec(
+                type="lr_monitor",
+            ),
+            CallbackSpec(
+                type="checkpoint",
+                params={
+                    "dirpath": "logs/checkpoints/cifar-resnet",
+                    "monitor": "val/loss",
+                    "mode": "min",
+                    "save_top_k": 1,
+                    "filename": "{epoch:02d}-{val_loss:.4f}",
+                    "save_last": True,
+                },
+            ),
+            CallbackSpec(
+                type="rich_progress",
+            ),
+            CallbackSpec(
+                type="device_stats",
+            ),
+        ],
+        tuning=TuningSpec(
+            n_trials=2,
+            directions=["minimize"],
+            metric_key="val/loss",
+            storage="logs/optuna/optuna.log",
+            prune=False,
+        ),
+        checkpoint=CheckpointLoadSpec(
+            source=None,
+            allow_missing=True,
+            allow_shape_mismatch=True,
+            freeze_loaded=False,
+        ),
         exports=[ExportSpec(kind="train_package", output="logs/models/mnist_resnet")],
     )
