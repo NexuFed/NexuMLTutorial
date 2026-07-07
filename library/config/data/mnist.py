@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from nexuml.core.types import DatasetSpec, DataSpec
+from nexuml.core.types import DatasetSpec, DataSpec, LoaderSpec
 
 
-def mnist_data(download: bool = True, root: str = "data/mnist") -> DataSpec:
+def mnist_data(download: bool = True, root: str = "data", num_workers: int = 4) -> DataSpec:
     """Create a DataSpec for MNIST image classification.
 
     Returns:
@@ -35,7 +35,8 @@ def mnist_data(download: bool = True, root: str = "data/mnist") -> DataSpec:
                 split_type="test",
             ),
         ],
-        # input_shapes={"features": [1, 28, 28]},
-        # num_classes=10,
-        # feature_key="features",
+        input_shapes={"features": [1, 28, 28]},
+        num_classes=10,
+        feature_key="features",
+        loader=LoaderSpec(num_workers=num_workers),
     )

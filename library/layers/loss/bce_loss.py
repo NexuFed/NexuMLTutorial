@@ -34,7 +34,8 @@ class BCELoss(PipelineLayer):
         y: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if y is None:
-            raise ValueError("ClassificationLoss requires labels")
+            # No labels available (e.g. shape-propagation dummy pass) - output zero loss.
+            return torch.zeros(x.shape[0], device=x.device, requires_grad=True)
         if y.ndim == 1:
             y = torch.nn.functional.one_hot(y.long(), num_classes=x.shape[-1])
-        return self.loss(x, y.float())
+        return self.loss(x, y.float()).expand(x.shape[0])

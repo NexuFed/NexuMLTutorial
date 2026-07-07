@@ -1,3 +1,3 @@
 """Loss layers for the ResNet tutorial."""
 
-from .classification_loss import ClassificationLoss
+from .bce_loss import BCELoss

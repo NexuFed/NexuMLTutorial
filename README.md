@@ -39,3 +39,8 @@ nexuml registry list layers
 nexuml registry list eval
 nexuml registry list scenarios
 ```
+
+## MNIST ResNet Example
+```bash
+nexuml smoke mnist-resnet --max-epochs 1 --download
+```

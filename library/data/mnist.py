@@ -1,16 +1,14 @@
 """MNIST dataset source for in-memory image experiments and benchmarks."""
 
-import numpy as np
 import pandas as pd
 import torchvision
 from nexuml.core.discovery import data_source
 from nexuml.data.dataset import NexuDataset
-from tensordict import TensorDict
 
 
 @data_source("MNISTDataset")
 class MNISTDataset(NexuDataset):
-    LABEL_NAMES = ["digit"]
+    LABEL_NAMES = ["class_labels"]
     MODALITY = "image"
 
     def __init__(
@@ -23,25 +21,23 @@ class MNISTDataset(NexuDataset):
         """MNIST Dataset
 
         Args:
-            meta (pd.DataFrame | None, optional): Holds information about every sample in the dataset like path to the file and all labels. Defaults to None.
-            label_names (list[str] | None, optional): Names of the labels in the metadata needed for the training process. Defaults to None.
-            split_ratio (list[float] | None, optional): Ratios for splitting the dataset. Defaults to None.
-            do_split (bool, optional): Whether to split the dataset. Defaults to False.
-            modality (str, optional): Modality of the data to load with NVIDIA DALI (instead of using ). Supported are: image, audio. Defaults to "image".
-            data (Dataset | Sequence | torch.Tensor | np.ndarray | None, optional): The actual data for the dataset. Defaults to None.
+            root (str, optional): Directory holding the raw MNIST files. Defaults to "data/mnist".
+            train (bool, optional): Load the 60000-sample train split, or the 10000-sample test split. Defaults to True.
+            download (bool, optional): Download MNIST to `root` if not already present. Defaults to True.
         """
 
-        meta = pd.DataFrame(
-            {
-                "idx": list(range(60000)),
-                "class_labels": np.random.randint(0, 10, size=(60000,)),
-            }
-        )
         data = torchvision.datasets.MNIST(
             root=root,
             train=train,
             download=download,
             transform=torchvision.transforms.ToTensor(),
+        )
+
+        meta = pd.DataFrame(
+            {
+                "idx": list(range(len(data))),
+                "class_labels": data.targets.tolist(),
+            }
         )
 
         super().__init__(
@@ -51,11 +47,3 @@ class MNISTDataset(NexuDataset):
             modality=self.MODALITY,
             **kwargs,
         )
-
-        pass
-
-    def load_item(self, idx: int, row: pd.Series) -> TensorDict:
-        return super().load_item(idx, row)
-
-    def load_labels(self, idx: int, row: pd.Series) -> TensorDict | None:
-        return super().load_labels(idx, row)

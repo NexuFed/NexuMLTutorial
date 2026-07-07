@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from nexuml.core.discovery import scenario
 from nexuml.core.types import (
+    DiagramSpec,
     EvaluationSpec,
     LoggingSpec,
     MLflowSpec,
@@ -14,8 +15,8 @@ from nexuml.core.types import (
     TrainingSpec,
 )
 
-from library.config.data.mnist import mnist_data
-from library.config.model import resnet_classifier
+from ..data.mnist import mnist_data
+from ..model import resnet_classifier
 
 
 @scenario("mnist-resnet")
@@ -45,7 +46,7 @@ def mnist_resnet(
             batch_size=batch_size,
             lr=lr,
         ),
-        data=mnist_data(download=True, root="data/mnist"),
+        data=mnist_data(download=True, root="data"),
         evaluation=EvaluationSpec(metrics=[], algorithms=[], test_result_metrics="all"),
         logging=LoggingSpec(
             tensorboard=TensorBoardSpec(log_dir="logs/tensorboard"),
@@ -55,9 +56,7 @@ def mnist_resnet(
                 log_model=False,
             ),
             dvclive=None,
-            experiment_name=name,
-            run_name=None,
-            log_system_metrics=False,
+            diagram=DiagramSpec(depth=2, output_dir="logs/diagrams"),
         ),
         callbacks=[],
         tuning=None,
