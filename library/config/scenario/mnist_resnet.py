@@ -6,6 +6,7 @@ from nexuml.core.discovery import scenario
 from nexuml.core.types import (
     DiagramSpec,
     EvaluationSpec,
+    ExportSpec,
     LoggingSpec,
     MLflowSpec,
     OptimizerSpec,
@@ -61,5 +62,5 @@ def mnist_resnet(
         callbacks=[],
         tuning=None,
         checkpoint=None,
-        exports=[],
+        exports=[ExportSpec(kind="train_package", output="logs/models/mnist_resnet")],
     )
