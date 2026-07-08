@@ -18,6 +18,7 @@ class LatentClassificationHead(PipelineLayer):
         keys_out: list[str],
         num_classes: int = 10,
         softmax: bool = False,
+        dropout: float = 0.0,
         **kwargs: Any,
     ):
         super().__init__(
@@ -27,6 +28,7 @@ class LatentClassificationHead(PipelineLayer):
             num_classes=num_classes,
             **kwargs,
         )
+        self.dropout = torch.nn.Dropout(dropout) if dropout > 0 else torch.nn.Identity()
         self.classifier = torch.nn.Linear(input_sizes[keys_in[0]][0], num_classes)
         self.softmax = softmax
 
@@ -35,6 +37,7 @@ class LatentClassificationHead(PipelineLayer):
         x: torch.Tensor,
         y: torch.Tensor | None = None,
     ) -> torch.Tensor:
+        x = self.dropout(x)
         x = self.classifier(x)
         if self.softmax:
             return torch.nn.functional.softmax(x, dim=-1)

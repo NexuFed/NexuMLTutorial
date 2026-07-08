@@ -46,4 +46,6 @@ nexuml registry list scenarios
 ## MNIST ResNet Example
 ```bash
 nexuml train mnist-resnet --max-epochs 1
+
+nexuml tune --scenario-file library/config/tune/mnist_resnet.py --n-trials 10
 ```

@@ -8,6 +8,10 @@ from nexuml.core.types import LayerSpec, PipelineSpec
 def resnet_classifier(
     num_classes: int = 10,
     label_key: str = "class",
+    encoder_width: int = 32,
+    encoder_depth: int = 2,
+    pooling_type: str = "GlobalAveragePooling",
+    head_dropout: float = 0.0,
 ) -> PipelineSpec:
     """Create a PipelineSpec for a staged ResNet image classifier."""
     return PipelineSpec(
@@ -17,12 +21,15 @@ def resnet_classifier(
                     type_key="ResNetEncoder",
                     keys_in=["features"],
                     keys_out=["embeddings"],
-                    params={},
+                    params={
+                        "width": encoder_width,
+                        "depth": encoder_depth,
+                    },
                 ),
             ],
             "Pooling": [
                 LayerSpec(
-                    type_key="GlobalAveragePooling",
+                    type_key=pooling_type,
                     keys_in=["embeddings"],
                     keys_out=["pooled_embeddings"],
                     params={},
@@ -36,6 +43,7 @@ def resnet_classifier(
                     params={
                         "num_classes": num_classes,
                         "softmax": True,
+                        "dropout": head_dropout,
                     },
                 ),
             ],
@@ -45,6 +53,17 @@ def resnet_classifier(
                     keys_in=["class_logits"],
                     keys_out=["classification_loss"],
                     params={
+                        "label_key": label_key,
+                    },
+                )
+            ],
+            "Metrics": [
+                LayerSpec(
+                    type_key="ClassificationMetrics",
+                    keys_in=["class_logits"],
+                    keys_out=["accuracy", "f1"],
+                    params={
+                        "num_classes": num_classes,
                         "label_key": label_key,
                     },
                 )

@@ -34,6 +34,7 @@ class ResNetEncoder(PipelineLayer):
         keys_out: list[str],
         num_classes: int = 10,
         width: int = 32,
+        depth: int = 2,
         **kwargs: Any,
     ):
         super().__init__(
@@ -52,8 +53,7 @@ class ResNetEncoder(PipelineLayer):
             torch.nn.BatchNorm2d(width),
             torch.nn.ReLU(inplace=True),
         )
-        self.block1 = ResidualBlock(width)
-        self.block2 = ResidualBlock(width)
+        self.blocks = torch.nn.ModuleList(ResidualBlock(width) for _ in range(depth))
         self.out_channels = width
 
     def forward_tensor(
@@ -62,6 +62,6 @@ class ResNetEncoder(PipelineLayer):
         y: torch.Tensor | None = None,
     ) -> torch.Tensor:
         x = self.stem(x)
-        x = self.block1(x)
-        x = self.block2(x)
+        for block in self.blocks:
+            x = block(x)
         return x

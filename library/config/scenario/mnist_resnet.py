@@ -25,6 +25,10 @@ def mnist_resnet(
     lr: float = 1e-3,
     batch_size: int = 64,
     max_epochs: int = 10,
+    encoder_width: int = 32,
+    encoder_depth: int = 2,
+    pooling_type: str = "GlobalAveragePooling",
+    head_dropout: float = 0.0,
 ) -> ScenarioSpec:
     """MNIST image classification with ResNet backbone.
 
@@ -34,7 +38,12 @@ def mnist_resnet(
     name = "mnist_resnet"
     return ScenarioSpec(
         name=name,
-        pipeline=resnet_classifier(),
+        pipeline=resnet_classifier(
+            encoder_width=encoder_width,
+            encoder_depth=encoder_depth,
+            pooling_type=pooling_type,
+            head_dropout=head_dropout,
+        ),
         training=default_training(max_epochs=max_epochs, batch_size=batch_size, lr=lr),
         data=mnist_data(download=True, root="data"),
         evaluation=default_evaluation(

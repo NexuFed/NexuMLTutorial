@@ -27,7 +27,7 @@ def default_training(
             params={"factor": 1.0, "total_iters": 0},
         ),
         loss_keys={"classification_loss": 1.0},
-        metric_keys=[],
+        metric_keys=["accuracy", "f1"],
         max_epochs=max_epochs,
         batch_size=batch_size,
         lr=lr,
