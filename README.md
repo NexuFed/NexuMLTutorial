@@ -10,9 +10,6 @@ source .venv/bin/activate
 ```bash
 uv pip install "git+https://github.com/NexuFed/NexuML.git"[all,dev]
 
-# Or install a branch
-uv pip install "git+https://github.com/NexuFed/NexuML.git"[all,dev]
-
 # So you can focus only on your own library
 uv pip uninstall nexuml_library
 ```
