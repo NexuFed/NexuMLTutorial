@@ -11,7 +11,7 @@ source .venv/bin/activate
 uv pip install "git+https://github.com/NexuFed/NexuML.git"[all,dev]
 
 # Or install a branch
-uv pip install "git+https://github.com/NexuFed/NexuML.git@feature/nex-187-enhance-the-torch-package-export-to-work-with-nexufl"[all,dev]
+uv pip install "git+https://github.com/NexuFed/NexuML.git"[all,dev]
 
 # So you can focus only on your own library
 uv pip uninstall nexuml_library
