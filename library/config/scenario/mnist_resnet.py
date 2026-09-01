@@ -50,8 +50,8 @@ def mnist_resnet(
             feature_key="pooled_embeddings", label_key="class"
         ),
         logging=default_logging(name=name),
-        callbacks=default_callbacks(),
+        callbacks=default_callbacks(name=name),
         tuning=default_tuning(),
         checkpoint=default_checkpoint(),
-        exports=default_exports(),
+        exports=default_exports(name=name),
     )

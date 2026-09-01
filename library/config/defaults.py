@@ -1,5 +1,3 @@
-LOG_FOLDER = "logs"
-
 from nexuml.core.types import (
     CallbackSpec,
     CheckpointLoadSpec,
@@ -15,6 +13,8 @@ from nexuml.core.types import (
     TrainingSpec,
     TuningSpec,
 )
+
+LOG_FOLDER = "logs"
 
 
 def default_training(
@@ -66,7 +66,7 @@ def default_logging(name: str) -> LoggingSpec:
     )
 
 
-def default_callbacks() -> list[CallbackSpec]:
+def default_callbacks(name: str) -> list[CallbackSpec]:
     return [
         CallbackSpec(
             type="early_stopping",
@@ -78,7 +78,7 @@ def default_callbacks() -> list[CallbackSpec]:
         CallbackSpec(
             type="checkpoint",
             params={
-                "dirpath": f"{LOG_FOLDER}/checkpoints/cifar-resnet",
+                "dirpath": f"{LOG_FOLDER}/checkpoints/{name}",
                 "monitor": "val/loss",
                 "mode": "min",
                 "save_top_k": 1,
@@ -116,5 +116,5 @@ def default_checkpoint() -> CheckpointLoadSpec:
     )
 
 
-def default_exports() -> list[ExportSpec]:
-    return [ExportSpec(kind="train_package", output="logs/models/mnist_resnet")]
+def default_exports(name: str) -> list[ExportSpec]:
+    return [ExportSpec(kind="train_package", output=f"{LOG_FOLDER}/models/{name}")]

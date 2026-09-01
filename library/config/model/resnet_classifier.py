@@ -37,19 +37,18 @@ def resnet_classifier(
             ],
             "Head": [
                 LayerSpec(
-                    type_key="LatentClassificationHead",
+                    type_key="ClassificationHead",
                     keys_in=["pooled_embeddings"],
                     keys_out=["class_logits"],
                     params={
                         "num_classes": num_classes,
-                        "softmax": True,
                         "dropout": head_dropout,
                     },
                 ),
             ],
             "Loss": [
                 LayerSpec(
-                    type_key="BCELoss",
+                    type_key="CrossEntropyLoss",
                     keys_in=["class_logits"],
                     keys_out=["classification_loss"],
                     params={

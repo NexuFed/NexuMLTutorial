@@ -1,4 +1,4 @@
-"""ResNet classification head layer."""
+"""Generic single-label classification head."""
 
 from __future__ import annotations
 
@@ -9,15 +9,14 @@ from nexuml.core.base_layer import PipelineLayer
 from nexuml.core.discovery import layer
 
 
-@layer("LatentClassificationHead")
-class LatentClassificationHead(PipelineLayer):
+@layer("ClassificationHead")
+class ClassificationHead(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],
         keys_in: list[str],
         keys_out: list[str],
         num_classes: int = 10,
-        softmax: bool = False,
         dropout: float = 0.0,
         **kwargs: Any,
     ):
@@ -30,15 +29,10 @@ class LatentClassificationHead(PipelineLayer):
         )
         self.dropout = torch.nn.Dropout(dropout) if dropout > 0 else torch.nn.Identity()
         self.classifier = torch.nn.Linear(input_sizes[keys_in[0]][0], num_classes)
-        self.softmax = softmax
 
     def forward_tensor(
         self,
         x: torch.Tensor,
         y: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        x = self.dropout(x)
-        x = self.classifier(x)
-        if self.softmax:
-            return torch.nn.functional.softmax(x, dim=-1)
-        return x
+        return self.classifier(self.dropout(x))
