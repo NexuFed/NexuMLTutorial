@@ -14,6 +14,8 @@ from nexuml.core.types import (
     TuningSpec,
 )
 
+from ..evaluation.tsne import tSNEVisualizer
+
 LOG_FOLDER = "logs"
 
 
@@ -41,12 +43,9 @@ def default_evaluation(
         metrics=["accuracy", "f1"],
         algorithms=[
             EvalAlgorithmSpec(
-                type="tsne_visualizer",
-                params={
-                    "feature_key": feature_key,
-                    "label_key": label_key,
-                    "max_samples": 1_000,
-                },
+                algorithm=tSNEVisualizer(max_samples=1_000),
+                feature_key=feature_key,
+                label_key=label_key,
             ),
         ],
         test_result_metrics="all",

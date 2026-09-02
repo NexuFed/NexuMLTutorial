@@ -15,7 +15,7 @@ The package entry point exposes the importable `library` package. Its tutorial-o
 Register the checkout and inspect those registries:
 
 ```bash
-nexuml library add $(pwd)/library
+nexuml library add $(pwd)
 nexuml library list
 nexuml registry list data
 nexuml registry list layers
@@ -32,11 +32,11 @@ nexuml build configs/mnist-resnet.yaml
 nexuml train mnist-resnet --max-epochs 1
 ```
 
-The scenario composes `ScenarioSpec` sections for data, pipeline, training, evaluation, logging, callbacks, and export. TensorDict keys connect its stages:
+The scenario composes `ScenarioSpec` sections for data, pipeline, training, evaluation, logging, callbacks, and export. NexuML 0.2 scenarios import typed definitions directly, for example `LayerSpec(component=ResNetEncoder(...), ...)` and `DatasetSpec(source=MNISTDataset(...), ...)`; registry names are reserved for discovery and resolved YAML. TensorDict keys connect the stages:
 
 ```text
 features -> embeddings -> pooled_embeddings -> class_logits
                                       class -> classification_loss, accuracy, f1
 ```
 
-MNIST is held by torchvision in `dataset.data`, so NexuML treats it as an in-memory dataset. That is useful for a first example, but it intentionally does not demonstrate native DALI file loading. Continue with [the audio tutorial](02_audio_native_dali.md) for that path.
+The built MNIST runtime holds a torchvision dataset in `dataset.data`, so NexuML treats it as an in-memory dataset. That is useful for a first example, but it intentionally does not demonstrate native DALI file loading. Continue with [the audio tutorial](02_audio_native_dali.md) for that path.

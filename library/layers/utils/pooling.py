@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import torch
 from nexuml.core.base_layer import PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
 @layer("GlobalAveragePooling")
-class GlobalAveragePooling(PipelineLayer):
+class GlobalAveragePooling(LayerDefinition):
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _GlobalAveragePoolingRuntime(**context.runtime_kwargs())
+
+
+class _GlobalAveragePoolingRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],
@@ -28,7 +34,12 @@ class GlobalAveragePooling(PipelineLayer):
 
 
 @layer("GlobalMaxPooling")
-class GlobalMaxPooling(PipelineLayer):
+class GlobalMaxPooling(LayerDefinition):
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _GlobalMaxPoolingRuntime(**context.runtime_kwargs())
+
+
+class _GlobalMaxPoolingRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],

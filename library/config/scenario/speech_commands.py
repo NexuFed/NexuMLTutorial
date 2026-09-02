@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from nexuml.core.components import LayerDefinition
 from nexuml.core.discovery import scenario
 from nexuml.core.types import ScenarioSpec
 
+from ...layers.model.audio import AudioCNNEncoder, TinyAudioTransformerEncoder
 from ..data import mini_speech_commands_data
 from ..defaults import (
     default_callbacks,
@@ -20,7 +22,7 @@ from ..model import audio_classifier
 
 def _speech_commands_scenario(
     name: str,
-    encoder_type: str,
+    encoder: LayerDefinition,
     root: str,
     download: bool,
     lr: float,
@@ -30,7 +32,7 @@ def _speech_commands_scenario(
 ) -> ScenarioSpec:
     return ScenarioSpec(
         name=name,
-        pipeline=audio_classifier(encoder_type=encoder_type),
+        pipeline=audio_classifier(encoder=encoder),
         training=default_training(max_epochs=max_epochs, batch_size=batch_size, lr=lr),
         data=mini_speech_commands_data(
             root=root, download=download, num_workers=num_workers
@@ -55,7 +57,7 @@ def speech_commands_cnn(
 ) -> ScenarioSpec:
     return _speech_commands_scenario(
         name="speech_commands_cnn",
-        encoder_type="AudioCNNEncoder",
+        encoder=AudioCNNEncoder(),
         root=root,
         download=download,
         lr=lr,
@@ -76,7 +78,7 @@ def speech_commands_transformer(
 ) -> ScenarioSpec:
     return _speech_commands_scenario(
         name="speech_commands_transformer",
-        encoder_type="TinyAudioTransformerEncoder",
+        encoder=TinyAudioTransformerEncoder(),
         root=root,
         download=download,
         lr=lr,

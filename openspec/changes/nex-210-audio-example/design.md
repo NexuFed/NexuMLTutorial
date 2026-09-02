@@ -159,8 +159,16 @@ The extraction helper SHOULD reject archive members that would escape the target
 
 ```python
 @data_source("MiniSpeechCommandsDataset")
-class MiniSpeechCommandsDataset(NexuDataset):
-    LABEL_NAMES = ["class"]
+class MiniSpeechCommandsDataset(DataSourceDefinition):
+    root: str = "data/mini_speech_commands"
+    download: bool = True
+
+    def build(self) -> NexuDataset:
+        return _MiniSpeechCommandsDatasetRuntime(**self.model_dump())
+
+
+class _MiniSpeechCommandsDatasetRuntime(NexuDataset):
+    ...
 ```
 
 The main state is metadata rather than `self.data`:
@@ -288,14 +296,12 @@ def mini_speech_commands_data(
     num_workers: int = 4,
 ) -> DataSpec:
     return DataSpec(
-        source_type="MiniSpeechCommandsDataset",
         train_split=0.8,
         val_split=0.1,
         test_split=0.1,
         datasets=[
             DatasetSpec(
-                type_key="MiniSpeechCommandsDataset",
-                params={"root": root, "download": download},
+                source=MiniSpeechCommandsDataset(root=root, download=download),
                 modality="audio",
                 split_type="keep",
             )
@@ -304,15 +310,13 @@ def mini_speech_commands_data(
         num_classes=8,
         feature_key="waveform",
         loader=LoaderSpec(
-            backend="dali",
+            backend=DaliLoader(),
             num_workers=num_workers,
         ),
     )
 ```
 
-`source_type` is descriptive here; the real dataset instantiation is driven by `datasets`.
-
-Do not add DALI-specific pipeline arguments to `LoaderSpec.params` unless an implementation blocker in current NexuML requires one. The tutorial should demonstrate the default native-file contract, not advanced backend tuning.
+The typed dataset and loader definitions own component parameters; `DatasetSpec` and `LoaderSpec` own placement and loading policy.
 
 ### D8 — CNN operates directly on waveform and returns embeddings
 
@@ -322,15 +326,13 @@ Do not add DALI-specific pipeline arguments to `LoaderSpec.params` unless an imp
 
 ```python
 @layer("AudioCNNEncoder")
-class AudioCNNEncoder(PipelineLayer):
-    def __init__(
-        self,
-        input_sizes: dict[str, tuple],
-        keys_in: list[str],
-        keys_out: list[str],
-        embedding_dim: int = 64,
-        **kwargs,
-    ): ...
+class AudioCNNEncoder(LayerDefinition):
+    embedding_dim: int = 64
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _AudioCNNEncoderRuntime(
+            **context.runtime_kwargs(), **self.model_dump()
+        )
 ```
 
 Recommended internal shape:
@@ -360,20 +362,18 @@ Minor kernel/stride adjustments are acceptable during implementation if shape pr
 
 ```python
 @layer("TinyAudioTransformerEncoder")
-class TinyAudioTransformerEncoder(PipelineLayer):
-    def __init__(
-        self,
-        input_sizes: dict[str, tuple],
-        keys_in: list[str],
-        keys_out: list[str],
-        d_model: int = 64,
-        patch_size: int = 160,
-        num_layers: int = 2,
-        num_heads: int = 4,
-        dim_feedforward: int = 128,
-        dropout: float = 0.1,
-        **kwargs,
-    ): ...
+class TinyAudioTransformerEncoder(LayerDefinition):
+    d_model: int = 64
+    patch_size: int = 160
+    num_layers: int = 2
+    num_heads: int = 4
+    dim_feedforward: int = 128
+    dropout: float = 0.1
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _TinyAudioTransformerEncoderRuntime(
+            **context.runtime_kwargs(), **self.model_dump()
+        )
 ```
 
 Internal contract for the default 16,000-sample input:
@@ -430,7 +430,7 @@ waveform
                               CrossEntropyLoss   ClassificationMetrics
 ```
 
-The scenario/model config changes the encoder type key, not the rest of the training program.
+The scenario/model config changes the encoder definition, not the rest of the training program.
 
 ### D11 — Replace tutorial softmax+BCE multiclass path with logits+cross entropy
 
@@ -459,7 +459,7 @@ library/layers/loss/cross_entropy.py
 
 ```python
 @layer("ClassificationHead")
-class ClassificationHead(PipelineLayer):
+class ClassificationHead(LayerDefinition):
     # Linear embedding -> raw class logits.
 ```
 
@@ -471,7 +471,7 @@ class ClassificationHead(PipelineLayer):
 
 ```python
 @layer("CrossEntropyLoss")
-class CrossEntropyLoss(PipelineLayer):
+class CrossEntropyLoss(LayerDefinition):
     # nn.CrossEntropyLoss(reduction="none")
 ```
 
@@ -490,11 +490,9 @@ Create `library/config/model/audio_classifier.py` with a small function that ass
 
 ```python
 def audio_classifier(
-    encoder_type: str,
-    num_classes: int = 8,
+    encoder: LayerDefinition,
     label_key: str = "class",
     head_dropout: float = 0.0,
-    encoder_params: dict | None = None,
 ) -> PipelineSpec:
     ...
 ```
@@ -503,26 +501,25 @@ Stages:
 
 ```text
 Encoder
-  type_key=<encoder_type>
+  component=<encoder>
   keys_in=["waveform"]
   keys_out=["embeddings"]
 
 Head
-  type_key="ClassificationHead"
+  component=ClassificationHead(...)
   keys_in=["embeddings"]
   keys_out=["class_logits"]
 
 Loss
-  type_key="CrossEntropyLoss"
+  component=CrossEntropyLoss()
   keys_in=["class_logits"]
   keys_out=["classification_loss"]
   label_key="class"
 
 Metrics
-  type_key="ClassificationMetrics"
+  component=ClassificationMetrics()
   keys_in=["class_logits"]
   keys_out=["accuracy", "f1"]
-  num_classes=8
   label_key="class"
 ```
 
@@ -533,7 +530,7 @@ Create `library/config/scenario/speech_commands.py` with one private/shared asse
 def speech_commands_cnn(...):
     return _speech_commands_scenario(
         name="speech_commands_cnn",
-        encoder_type="AudioCNNEncoder",
+        encoder=AudioCNNEncoder(),
         ...,
     )
 
@@ -542,7 +539,7 @@ def speech_commands_cnn(...):
 def speech_commands_transformer(...):
     return _speech_commands_scenario(
         name="speech_commands_transformer",
-        encoder_type="TinyAudioTransformerEncoder",
+        encoder=TinyAudioTransformerEncoder(),
         ...,
     )
 ```
@@ -623,7 +620,7 @@ Do not add empty placeholder tutorial files for future stages.
 3. Mini Speech Commands download/layout;
 4. the metadata contract;
 5. `dali_x_keys`/layout/sequence length at a conceptual level;
-6. `LoaderSpec(backend="dali")` as the only backend selection needed in tutorial config;
+6. `LoaderSpec(backend=DaliLoader())` as the only backend selection needed in tutorial config;
 7. commands:
 
 ```bash
@@ -636,7 +633,7 @@ nexuml build configs/speech-commands-transformer.yaml
 nexuml train speech-commands-transformer --max-epochs 10
 ```
 
-8. a short comparison showing the encoder type key is the meaningful architecture difference.
+8. a short comparison showing the encoder definition is the meaningful architecture difference.
 
 The root README contains a compact learning-path table with statuses such as `available` / `next`, linking only to actual files for available stages.
 
@@ -842,7 +839,7 @@ MiniSpeechCommandsDataset metadata
 (file, class, split; data=None)
        |
        v
-LoaderSpec(backend="dali")
+LoaderSpec(backend=DaliLoader())
        |
        v
 NexuML DaliLoaderBackend

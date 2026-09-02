@@ -47,9 +47,9 @@
 - [x] 4.3 Limit the direct loader to the official tutorial data assumptions: mono PCM, 16 kHz, normalized float32, pad/truncate to 16,000 samples; fail clearly for unsupported input rather than growing an audio framework.
 - [x] 4.4 Ensure direct `dataset[i]` returns `x["waveform"]` with shape `[16000]` and `y["class"]`.
 - [x] 4.5 Create `library/config/data/mini_speech_commands.py` with `mini_speech_commands_data(...)`.
-- [x] 4.6 Configure the dataset through `DatasetSpec(type_key="MiniSpeechCommandsDataset", modality="audio", split_type="keep")`.
+- [x] 4.6 Configure the dataset through `DatasetSpec(source=MiniSpeechCommandsDataset(...), modality="audio", split_type="keep")`.
 - [x] 4.7 Configure `DataSpec` with `input_shapes={"waveform": [16000]}`, `feature_key="waveform"`, `num_classes=8`, and 0.8/0.1/0.1 split ratios.
-- [x] 4.8 Configure `LoaderSpec(backend="dali", num_workers=num_workers)` explicitly.
+- [x] 4.8 Configure `LoaderSpec(backend=DaliLoader(), num_workers=num_workers)` explicitly.
 - [x] 4.9 Do not import `nvidia.dali` or call any DALI operator in tutorial code.
 - [x] 4.10 Update `library/config/data/__init__.py` and any package exports needed for discovery/readability.
 
@@ -132,7 +132,7 @@
 
 - [x] 9.10 Create `tests/test_audio_scenarios.py` with structural spec assertions rather than long training jobs.
 - [x] 9.11 Verify CNN vs Transformer differs at the encoder while head/loss/metrics/data contracts remain identical.
-- [x] 9.12 Verify both specs select `loader.backend == "dali"`, preserve `split_type == "keep"`, use `ClassificationHead`, and use `CrossEntropyLoss`.
+- [x] 9.12 Verify both specs use `DaliLoader`, preserve `split_type == "keep"`, use `ClassificationHead`, and use `CrossEntropyLoss`.
 - [x] 9.13 Verify the existing MNIST pipeline resolves through the new generic classification head/loss after migration.
 - [x] 9.14 Keep the total new test surface small; do not add a mandatory live dataset download or DALI/GPU CI matrix.
 
@@ -147,7 +147,7 @@
   - `build`;
   - `train`.
 - [x] 10.4 Add `tutorials/02_audio_native_dali.md` explaining why the file-backed example uses native DALI while in-memory MNIST does not.
-- [x] 10.5 Explain Mini Speech Commands layout, `file/class/split` metadata, the native waveform contract, and `LoaderSpec(backend="dali")`.
+- [x] 10.5 Explain Mini Speech Commands layout, `file/class/split` metadata, the native waveform contract, and `LoaderSpec(backend=DaliLoader())`.
 - [x] 10.6 Include runnable CNN commands:
 
 ```bash

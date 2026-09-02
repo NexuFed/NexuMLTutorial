@@ -4,7 +4,7 @@
 The tutorial SHALL provide an automatically downloadable Mini Speech Commands dataset without adding TensorFlow or another dataset framework as a runtime dependency.
 
 #### Scenario: Missing dataset downloads from the official mini archive
-- **WHEN** `MiniSpeechCommandsDataset` is created with `download=True`
+- **WHEN** a `MiniSpeechCommandsDataset(download=True)` definition is built
 - **AND** the configured root does not contain the dataset
 - **THEN** the tutorial SHALL download the official `mini_speech_commands.zip` archive
 - **AND** extract it to the configured data location
@@ -13,7 +13,7 @@ The tutorial SHALL provide an automatically downloadable Mini Speech Commands da
 #### Scenario: Download disabled fails clearly
 - **WHEN** the configured dataset root is missing
 - **AND** `download=False`
-- **THEN** dataset construction SHALL raise an actionable file-not-found error
+- **THEN** building the dataset SHALL raise an actionable file-not-found error
 - **AND** it SHALL NOT silently create an empty training dataset.
 
 #### Scenario: TensorFlow is not required
@@ -34,7 +34,7 @@ The dataset SHALL expose deterministic file-backed metadata with stable class ID
 - **AND** the assignment SHALL be deterministic across Python processes and machines.
 
 #### Scenario: Metadata remains file-backed
-- **WHEN** the dataset is constructed
+- **WHEN** the dataset definition is built
 - **THEN** `meta["file"]` SHALL contain WAV file paths
 - **AND** `meta["class"]` SHALL contain scalar class IDs
 - **AND** `meta["split"]` SHALL contain `train`, `val`, or `test`
@@ -45,14 +45,14 @@ The Speech Commands scenarios SHALL select the NexuML DALI loader via `LoaderSpe
 
 #### Scenario: DataSpec selects DALI and preserves dataset splits
 - **WHEN** either Speech Commands scenario is resolved
-- **THEN** `data.loader.backend` SHALL equal `dali`
+- **THEN** `data.loader.backend` SHALL be a `DaliLoader` definition
 - **AND** the dataset specification SHALL use `split_type="keep"`
 - **AND** the feature key SHALL be `waveform`
 - **AND** the declared input shape SHALL be `[16000]`
 - **AND** the declared number of classes SHALL be 8.
 
 #### Scenario: Dataset declares the native audio contract
-- **WHEN** `MiniSpeechCommandsDataset` is instantiated
+- **WHEN** a `MiniSpeechCommandsDataset` definition is built
 - **THEN** its sample rate SHALL be `16000`
 - **AND** `dali_x_keys` SHALL equal `["waveform"]`
 - **AND** `dali_layout` SHALL equal `T`

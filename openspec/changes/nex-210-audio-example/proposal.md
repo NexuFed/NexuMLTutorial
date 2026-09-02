@@ -30,7 +30,7 @@ NEX-210 shall add one small, real audio-classification example that exercises Ne
   - modality is `audio`;
   - native DALI contract is `waveform` with layout `T`, 16 kHz sample rate, and 16,000 samples;
   - no tutorial-owned DALI pipeline is implemented.
-- Configure the scenario with `LoaderSpec(backend="dali")` so NexuML core selects its native audio path (`readers.file` + `decoders.audio`) rather than using an external-source or tutorial-defined loader.
+- Configure the scenario with `LoaderSpec(backend=DaliLoader())` so NexuML core selects its native audio path (`readers.file` + `decoders.audio`) rather than using an external-source or tutorial-defined loader.
 - Add two deliberately small raw-waveform encoders sharing the same output contract:
   - `AudioCNNEncoder`: a small 1D CNN and temporal global pooling;
   - `TinyAudioTransformerEncoder`: Conv1d patch embedding plus a two-layer Transformer encoder;
@@ -84,8 +84,10 @@ The intended public configuration is:
 DataSpec(
     datasets=[
         DatasetSpec(
-            type_key="MiniSpeechCommandsDataset",
-            params={"root": "data/mini_speech_commands", "download": True},
+            source=MiniSpeechCommandsDataset(
+                root="data/mini_speech_commands",
+                download=True,
+            ),
             modality="audio",
             split_type="keep",
         )
@@ -93,7 +95,7 @@ DataSpec(
     input_shapes={"waveform": [16000]},
     num_classes=8,
     feature_key="waveform",
-    loader=LoaderSpec(backend="dali", num_workers=4),
+    loader=LoaderSpec(backend=DaliLoader(), num_workers=4),
 )
 ```
 
@@ -266,7 +268,7 @@ NexuMLTutorial/
 - `library/layers/head/resnet_head.py` -> `library/layers/head/classification.py`
 - `library/layers/loss/bce_loss.py` -> `library/layers/loss/cross_entropy.py`
 
-The old tutorial-only files/type keys shall be removed rather than kept as compatibility aliases.
+The old tutorial-only files/component identities shall be removed rather than kept as compatibility aliases.
 
 ## Non-Goals
 

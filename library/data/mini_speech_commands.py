@@ -7,11 +7,11 @@ import urllib.request
 import wave
 import zipfile
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import pandas as pd
 import torch
+from nexuml.core.components import DataSourceDefinition
 from nexuml.core.discovery import data_source
 from nexuml.data.dataset import NexuDataset
 from tensordict import TensorDict
@@ -58,9 +58,17 @@ def _speaker_split(path: Path) -> str:
 
 
 @data_source("MiniSpeechCommandsDataset")
-class MiniSpeechCommandsDataset(NexuDataset):
+class MiniSpeechCommandsDataset(DataSourceDefinition):
     """Eight-command WAV dataset with an approximate 80/10/10 speaker split."""
 
+    root: str = "data/mini_speech_commands"
+    download: bool = True
+
+    def build(self) -> NexuDataset:
+        return _MiniSpeechCommandsDatasetRuntime(**self.model_dump())
+
+
+class _MiniSpeechCommandsDatasetRuntime(NexuDataset):
     LABEL_NAMES = ["class"]
     MODALITY = "audio"
 
@@ -68,7 +76,6 @@ class MiniSpeechCommandsDataset(NexuDataset):
         self,
         root: str = "data/mini_speech_commands",
         download: bool = True,
-        **kwargs: Any,
     ):
         self.root = Path(root)
         if not _has_wav_files(self.root):
@@ -92,7 +99,6 @@ class MiniSpeechCommandsDataset(NexuDataset):
             meta=pd.DataFrame(rows),
             label_names=self.LABEL_NAMES,
             modality=self.MODALITY,
-            **kwargs,
         )
         self.sample_rate = SAMPLE_RATE
         self.dali_x_keys = ["waveform"]

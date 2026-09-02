@@ -14,6 +14,7 @@ from nexuml.core.types import ScenarioSpec, TuningSpec
 
 from library.config.defaults import LOG_FOLDER
 from library.config.scenario.mnist_resnet import mnist_resnet
+from library.layers.utils.pooling import GlobalAveragePooling, GlobalMaxPooling
 
 SEARCH_SPACE = {
     "batch_size": {"type": "categorical", "choices": [16, 32, 64]},
@@ -78,16 +79,22 @@ def build(
     encoder = encoder or {}
     pooling = pooling or {}
     head = head or {}
+    pooling_definition = {
+        "GlobalAveragePooling": GlobalAveragePooling,
+        "GlobalMaxPooling": GlobalMaxPooling,
+    }[pooling.get("type", "GlobalAveragePooling")]()
     scenario_spec = mnist_resnet(
         batch_size=batch_size,
         max_epochs=10,
         encoder_width=encoder.get("width", 32),
         encoder_depth=encoder.get("depth", 2),
-        pooling_type=pooling.get("type", "GlobalAveragePooling"),
+        pooling=pooling_definition,
         head_dropout=head.get("dropout", 0.0),
     )
     scenario_spec.tuning = TUNING_SPEC
     # The tuner disables the trainer's progress bar; drop the rich_progress
     # callback so it doesn't conflict with that setting.
-    scenario_spec.callbacks = [c for c in scenario_spec.callbacks if c.type != "rich_progress"]
+    scenario_spec.callbacks = [
+        c for c in scenario_spec.callbacks if c.type != "rich_progress"
+    ]
     return scenario_spec

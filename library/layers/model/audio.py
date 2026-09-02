@@ -6,11 +6,19 @@ from typing import Any
 
 import torch
 from nexuml.core.base_layer import PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
 @layer("AudioCNNEncoder")
-class AudioCNNEncoder(PipelineLayer):
+class AudioCNNEncoder(LayerDefinition):
+    embedding_dim: int = 64
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _AudioCNNEncoderRuntime(**context.runtime_kwargs(), **self.model_dump())
+
+
+class _AudioCNNEncoderRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],
@@ -44,7 +52,21 @@ class AudioCNNEncoder(PipelineLayer):
 
 
 @layer("TinyAudioTransformerEncoder")
-class TinyAudioTransformerEncoder(PipelineLayer):
+class TinyAudioTransformerEncoder(LayerDefinition):
+    d_model: int = 64
+    patch_size: int = 160
+    num_layers: int = 2
+    num_heads: int = 4
+    dim_feedforward: int = 128
+    dropout: float = 0.1
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _TinyAudioTransformerEncoderRuntime(
+            **context.runtime_kwargs(), **self.model_dump()
+        )
+
+
+class _TinyAudioTransformerEncoderRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],

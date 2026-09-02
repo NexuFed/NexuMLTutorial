@@ -14,7 +14,7 @@ The repository SHALL present a recommended learning order that introduces one ma
 - **WHEN** a user follows the audio tutorial
 - **THEN** it SHALL explain why the in-memory MNIST example does not exercise native DALI file loading
 - **AND** explain the Mini Speech Commands `file`/`class`/`split` metadata contract
-- **AND** explain that `LoaderSpec(backend="dali")` selects NexuML's backend without requiring a tutorial-owned DALI implementation
+- **AND** explain that `LoaderSpec(backend=DaliLoader())` selects NexuML's backend without requiring a tutorial-owned DALI implementation
 - **AND** provide runnable `resolve`, `build`, and `train` commands for the CNN scenario.
 
 #### Scenario: Transformer demonstrates composition rather than a second training stack
@@ -56,7 +56,7 @@ The documentation SHALL use scenario, layer, and backend names that actually res
 
 #### Scenario: DALI availability is made explicit
 - **WHEN** a user prepares to run the audio tutorial
-- **THEN** the tutorial SHALL instruct the user to verify loader availability with `nexuml backend list`
+- **THEN** the tutorial SHALL instruct the user to verify loader availability with `nexuml backend list data-loader`
 - **AND** it SHALL distinguish platform/runtime DALI availability from the dataset/model unit-test path.
 
 ### Requirement: Advanced topics are not prematurely coupled to NEX-210

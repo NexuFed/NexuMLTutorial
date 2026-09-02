@@ -6,11 +6,22 @@ from typing import Any
 
 import torch
 from nexuml.core.base_layer import PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
 @layer("ClassificationHead")
-class ClassificationHead(PipelineLayer):
+class ClassificationHead(LayerDefinition):
+    dropout: float = 0.0
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _ClassificationHeadRuntime(
+            dropout=self.dropout,
+            **context.runtime_kwargs(num_classes=context.num_classes or 10),
+        )
+
+
+class _ClassificationHeadRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],

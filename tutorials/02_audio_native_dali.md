@@ -18,7 +18,7 @@ The dataset downloads and extracts this archive with Python's standard library. 
 
 ## Why This Uses Native DALI
 
-The MNIST source keeps a torchvision dataset in `self.data`, so NexuML's DALI backend uses its in-memory fallback. `MiniSpeechCommandsDataset` instead keeps `self.data is None` and supplies metadata rows:
+The built MNIST runtime keeps a torchvision dataset in `self.data`, so NexuML's DALI backend uses its in-memory fallback. The runtime built by `MiniSpeechCommandsDataset` instead keeps `self.data is None` and supplies metadata rows:
 
 | Column | Meaning |
 | --- | --- |
@@ -41,11 +41,14 @@ The data configuration selects the backend and preserves dataset-owned splits:
 
 ```python
 DatasetSpec(
-    type_key="MiniSpeechCommandsDataset",
+    source=MiniSpeechCommandsDataset(
+        root="data/mini_speech_commands",
+        download=True,
+    ),
     modality="audio",
     split_type="keep",
 )
-LoaderSpec(backend="dali", num_workers=4)
+LoaderSpec(backend=DaliLoader(), num_workers=4)
 ```
 
 No tutorial module imports DALI or defines a DALI pipeline. NexuML core maps the WAV metadata to its native reader/decoder and returns `x["waveform"]` with shape `[B, 16000]`.
@@ -55,7 +58,7 @@ No tutorial module imports DALI or defines a DALI pipeline. NexuML core maps the
 NVIDIA DALI availability depends on the host platform. Install this project through its `nexuml[dali]` dependency, use a compatible NVIDIA driver/CUDA runtime for GPU execution, and confirm registration before training:
 
 ```bash
-nexuml backend list
+nexuml backend list data-loader
 ```
 
 The output must include `data-loader dali`. Dataset and model unit tests do not require a DALI-capable GPU, but this tutorial's training path does require the DALI backend to be available.
@@ -72,11 +75,11 @@ The first run downloads and extracts Mini Speech Commands under `data/mini_speec
 
 ## Swap Only the Encoder
 
-The Transformer scenario changes only the encoder type:
+The Transformer scenario changes only the typed encoder definition:
 
 ```python
-audio_classifier(encoder_type="AudioCNNEncoder")
-audio_classifier(encoder_type="TinyAudioTransformerEncoder")
+audio_classifier(encoder=AudioCNNEncoder())
+audio_classifier(encoder=TinyAudioTransformerEncoder())
 ```
 
 Both scenarios reuse the same dataset, `ClassificationHead`, `CrossEntropyLoss`, `ClassificationMetrics`, training, evaluation, callbacks, and logging setup. Both encoders emit `embeddings` with dimension 64.

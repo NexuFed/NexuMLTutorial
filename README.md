@@ -13,10 +13,10 @@ export NEXUML_DATA_ROOT=$(pwd)/data
 export NEXUML_LOGS_ROOT=$(pwd)/logs
 ```
 
-The `nexuml[dali]` dependency installs NexuML's supported DALI extra. Native DALI is platform-specific; before running the audio tutorial, verify that this environment reports the loader:
+This tutorial targets NexuML 0.2's typed component syntax. The `nexuml[dali]` dependency installs NexuML's supported DALI extra. Native DALI is platform-specific; before running the audio tutorial, verify that this environment reports the loader:
 
 ```bash
-nexuml backend list
+nexuml backend list data-loader
 ```
 
 On GPU systems, the installed DALI build also needs a compatible NVIDIA driver/CUDA runtime.
@@ -26,7 +26,7 @@ On GPU systems, the installed DALI build also needs a compatible NVIDIA driver/C
 Register this checkout and inspect its components:
 
 ```bash
-nexuml library add $(pwd)/library
+nexuml library add $(pwd)
 nexuml library list
 
 nexuml registry --help

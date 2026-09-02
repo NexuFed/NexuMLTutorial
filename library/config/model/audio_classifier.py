@@ -2,50 +2,49 @@
 
 from __future__ import annotations
 
-from typing import Any
-
+from nexuml.core.components import LayerDefinition
 from nexuml.core.types import LayerSpec, PipelineSpec
+
+from ...layers.head.classification import ClassificationHead
+from ...layers.loss.cross_entropy import CrossEntropyLoss
+from ...layers.metrics.classification_metrics import ClassificationMetrics
 
 
 def audio_classifier(
-    encoder_type: str,
-    num_classes: int = 8,
+    encoder: LayerDefinition,
     label_key: str = "class",
     head_dropout: float = 0.0,
-    encoder_params: dict[str, Any] | None = None,
 ) -> PipelineSpec:
     return PipelineSpec(
         stages={
             "Encoder": [
                 LayerSpec(
-                    type_key=encoder_type,
+                    component=encoder,
                     keys_in=["waveform"],
                     keys_out=["embeddings"],
-                    params=encoder_params or {},
                 )
             ],
             "Head": [
                 LayerSpec(
-                    type_key="ClassificationHead",
+                    component=ClassificationHead(dropout=head_dropout),
                     keys_in=["embeddings"],
                     keys_out=["class_logits"],
-                    params={"num_classes": num_classes, "dropout": head_dropout},
                 )
             ],
             "Loss": [
                 LayerSpec(
-                    type_key="CrossEntropyLoss",
+                    component=CrossEntropyLoss(),
                     keys_in=["class_logits"],
                     keys_out=["classification_loss"],
-                    params={"label_key": label_key},
+                    label_key=label_key,
                 )
             ],
             "Metrics": [
                 LayerSpec(
-                    type_key="ClassificationMetrics",
+                    component=ClassificationMetrics(),
                     keys_in=["class_logits"],
                     keys_out=["accuracy", "f1"],
-                    params={"num_classes": num_classes, "label_key": label_key},
+                    label_key=label_key,
                 )
             ],
         }
