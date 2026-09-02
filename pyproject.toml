@@ -8,12 +8,16 @@ version = "0.1.0"
 description = "Tutorial library for using NexuML"
 requires-python = ">=3.12"
 dependencies = [
-    "nexuml>=0.1.0",
-    "nexuml-library>=0.1.0",
+    "nexuml[dali]>=0.2.0",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.4",
+    "torchaudio>=2.0",
+    "torchmetrics>=1.0",
+    "torchvision>=0.15",
 ]
 
 [project.entry-points."nexuml.libraries"]
-nexuml-tutorial = "nexuml-tutorial"
+nexuml-tutorial = "library"
 
 [tool.hatch.build.targets.wheel]
 packages = ["library"]

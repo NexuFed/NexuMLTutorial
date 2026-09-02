@@ -1,3 +1,4 @@
-"""Model layers for the ResNet tutorial."""
+"""Tutorial model layers."""
 
+from .audio import AudioCNNEncoder, TinyAudioTransformerEncoder
 from .resnet import ResNetEncoder

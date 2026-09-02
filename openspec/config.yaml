@@ -1,0 +1,22 @@
+schema: spec-driven
+
+context: |
+  NexuMLTutorial is a deliberately small, standalone example library built on NexuML core.
+  Tech stack: Python 3.12+, PyTorch, TensorDict, NexuML, optional NVIDIA DALI.
+  Tutorial code MUST NOT depend on nexuml_library or copy implementations from the NexuML public library.
+  Prefer explicit, minimal, reusable components over frameworks, compatibility layers, factories with hidden behavior, or duplicated training loops.
+  Tutorial examples should exercise NexuML public contracts and keep framework/backend implementation details inside NexuML itself.
+  Use conventional commits and keep tests focused on tutorial-owned behavior.
+
+rules:
+  proposal:
+    - Include explicit goals, non-goals, affected files, and the user-facing learning outcome.
+    - Call out any upstream NexuML contracts the tutorial relies on without proposing duplicate implementations.
+  design:
+    - Prefer the smallest maintainable design that demonstrates the intended NexuML feature.
+    - Include the exact intended repository structure and stable TensorDict/data contracts.
+    - Do not add legacy aliases or compatibility shims unless explicitly required.
+  tasks:
+    - Keep tasks implementation-oriented and ordered so each section can be validated independently.
+    - Add only focused tests; do not create a large test matrix for tutorial code.
+    - Include explicit validation commands and a final simplicity/dependency audit.

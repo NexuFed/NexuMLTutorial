@@ -1,3 +1,3 @@
-"""Loss layers for the ResNet tutorial."""
+"""Classification loss layers."""
 
-from .bce_loss import BCELoss
+from .cross_entropy import CrossEntropyLoss

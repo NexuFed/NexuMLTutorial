@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from nexuml.core.components import LayerDefinition
 from nexuml.core.discovery import scenario
 from nexuml.core.types import (
     ScenarioSpec,
@@ -27,7 +28,7 @@ def mnist_resnet(
     max_epochs: int = 10,
     encoder_width: int = 32,
     encoder_depth: int = 2,
-    pooling_type: str = "GlobalAveragePooling",
+    pooling: LayerDefinition | None = None,
     head_dropout: float = 0.0,
 ) -> ScenarioSpec:
     """MNIST image classification with ResNet backbone.
@@ -41,7 +42,7 @@ def mnist_resnet(
         pipeline=resnet_classifier(
             encoder_width=encoder_width,
             encoder_depth=encoder_depth,
-            pooling_type=pooling_type,
+            pooling=pooling,
             head_dropout=head_dropout,
         ),
         training=default_training(max_epochs=max_epochs, batch_size=batch_size, lr=lr),
@@ -50,8 +51,8 @@ def mnist_resnet(
             feature_key="pooled_embeddings", label_key="class"
         ),
         logging=default_logging(name=name),
-        callbacks=default_callbacks(),
+        callbacks=default_callbacks(name=name),
         tuning=default_tuning(),
         checkpoint=default_checkpoint(),
-        exports=default_exports(),
+        exports=default_exports(name=name),
     )

@@ -7,18 +7,23 @@ from typing import Any, Literal, cast
 import torch
 import torch.nn as nn
 from nexuml.core.base_layer import LightningMode, PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 from tensordict import TensorDict
 from torchmetrics.classification import MulticlassAccuracy, MulticlassF1Score
 
 _METRIC_BUILDERS = {
-    "accuracy": lambda num_classes, average: MulticlassAccuracy(num_classes=num_classes),
-    "f1": lambda num_classes, average: MulticlassF1Score(num_classes=num_classes, average=average),
+    "accuracy": lambda num_classes, average: MulticlassAccuracy(
+        num_classes=num_classes
+    ),
+    "f1": lambda num_classes, average: MulticlassF1Score(
+        num_classes=num_classes, average=average
+    ),
 }
 
 
 @layer("ClassificationMetrics")
-class ClassificationMetrics(PipelineLayer):
+class ClassificationMetrics(LayerDefinition):
     """Accumulate multiclass accuracy/F1 metrics with torchmetrics.
 
     ``keys_out`` names which metrics to compute (e.g. ``["accuracy", "f1"]``)
@@ -27,22 +32,34 @@ class ClassificationMetrics(PipelineLayer):
     through unchanged.
     """
 
+    average: str = "macro"
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _ClassificationMetricsRuntime(
+            average=self.average, **context.runtime_kwargs()
+        )
+
+
+class _ClassificationMetricsRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],
         keys_in: list[str],
         keys_out: list[str],
-        num_classes: int,
+        num_classes: int | None = None,
         label_key: str = "class",
         average: str = "macro",
         **kwargs: Any,
     ):
+        inferred_num_classes = num_classes or input_sizes.get(keys_in[0], (None,))[-1]
+        if inferred_num_classes is None:
+            raise ValueError("ClassificationMetrics requires num_classes")
         super().__init__(
             input_sizes=input_sizes,
             keys_in=keys_in,
             keys_out=keys_out,
             label_key=label_key,
-            num_classes=num_classes,
+            num_classes=inferred_num_classes,
             **kwargs,
         )
         self.average = cast(Literal["micro", "macro", "weighted", "none"], average)
@@ -96,7 +113,11 @@ class ClassificationMetrics(PipelineLayer):
 
     def get_epoch_metrics(self, stage: str) -> dict[str, torch.Tensor]:
         metrics = (
-            self.val_metrics if stage == "val" else self.test_metrics if stage == "test" else None
+            self.val_metrics
+            if stage == "val"
+            else self.test_metrics
+            if stage == "test"
+            else None
         )
         if metrics is None:
             return {}
@@ -112,5 +133,7 @@ class ClassificationMetrics(PipelineLayer):
         for metric in self.test_metrics.values():
             metric.reset()  # ty: ignore[call-non-callable]
 
-    def forward_tensor(self, x: torch.Tensor, y: torch.Tensor | None = None) -> torch.Tensor:
+    def forward_tensor(
+        self, x: torch.Tensor, y: torch.Tensor | None = None
+    ) -> torch.Tensor:
         raise NotImplementedError
