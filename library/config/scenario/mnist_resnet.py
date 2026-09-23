@@ -21,7 +21,7 @@ from ..defaults import (
 from ..model import resnet_classifier
 
 
-@scenario("mnist-resnet")
+@scenario("tutorial-mnist-resnet")
 def mnist_resnet(
     lr: float = 1e-3,
     batch_size: int = 64,

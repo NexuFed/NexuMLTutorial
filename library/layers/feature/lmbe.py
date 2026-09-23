@@ -9,7 +9,7 @@ from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
-@layer("LMBE")
+@layer("TutorialLMBE")
 class LMBE(LayerDefinition):
     """Compute Log Mel Band Energies from a raw waveform.
 

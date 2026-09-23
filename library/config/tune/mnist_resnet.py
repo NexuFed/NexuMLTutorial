@@ -10,6 +10,7 @@ Exposes:
 
 from __future__ import annotations
 
+from lightning.pytorch.callbacks import RichProgressBar
 from nexuml.core.types import ScenarioSpec, TuningSpec
 
 from library.config.defaults import LOG_FOLDER
@@ -95,6 +96,6 @@ def build(
     # The tuner disables the trainer's progress bar; drop the rich_progress
     # callback so it doesn't conflict with that setting.
     scenario_spec.callbacks = [
-        c for c in scenario_spec.callbacks if c.type != "rich_progress"
+        c for c in scenario_spec.callbacks if c.resolve() is not RichProgressBar
     ]
     return scenario_spec

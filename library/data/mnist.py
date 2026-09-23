@@ -7,7 +7,7 @@ from nexuml.core.discovery import data_source
 from nexuml.data.dataset import NexuDataset
 
 
-@data_source("MNISTDataset")
+@data_source("TutorialMNISTDataset")
 class MNISTDataset(DataSourceDefinition):
     root: str = "data/mnist"
     train: bool = True

@@ -13,7 +13,7 @@ export NEXUML_DATA_ROOT=$(pwd)/data
 export NEXUML_LOGS_ROOT=$(pwd)/logs
 ```
 
-This tutorial targets NexuML 0.2's typed component syntax. The `nexuml[dali]` dependency installs NexuML's supported DALI extra. Native DALI is platform-specific; before running the audio tutorial, verify that this environment reports the loader:
+This tutorial targets NexuML's typed component and factory syntax. The `nexuml[dali]` dependency installs NexuML's supported DALI extra. Native DALI is platform-specific; before running the audio tutorial, verify that this environment reports the loader:
 
 ```bash
 nexuml backend list data-loader
@@ -23,18 +23,19 @@ On GPU systems, the installed DALI build also needs a compatible NVIDIA driver/C
 
 ## Local Library
 
-Register this checkout and inspect its components:
+The editable install registers this library via its package entry point. Inspect its components:
 
 ```bash
-nexuml library add $(pwd)
 nexuml library list
-
+# nexuml library add $(pwd) # already done by uv pip install -e .
 nexuml registry --help
 nexuml registry list data
 nexuml registry list layers
 nexuml registry list eval
 nexuml registry list scenarios
 ```
+
+Do not add `library/` itself as a local library root: that imports the same components a second time under different module names. If you previously added it, run `nexuml library delete "$(pwd)/library"`; the editable install still discovers it.
 
 ## Learning Path
 
@@ -53,9 +54,9 @@ nexuml registry list scenarios
 ## Quick Commands
 
 ```bash
-nexuml resolve mnist-resnet
-nexuml build configs/mnist-resnet.yaml
-nexuml train mnist-resnet --max-epochs 1
+nexuml resolve tutorial-mnist-resnet
+nexuml build configs/tutorial-mnist-resnet.yaml
+nexuml train tutorial-mnist-resnet --max-epochs 1
 
 nexuml resolve speech-commands-cnn
 nexuml build configs/speech-commands-cnn.yaml

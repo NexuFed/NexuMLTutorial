@@ -22,7 +22,7 @@ _METRIC_BUILDERS = {
 }
 
 
-@layer("ClassificationMetrics")
+@layer("TutorialClassificationMetrics")
 class ClassificationMetrics(LayerDefinition):
     """Accumulate multiclass accuracy/F1 metrics with torchmetrics.
 
