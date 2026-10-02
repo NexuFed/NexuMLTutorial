@@ -8,6 +8,7 @@ from typing import Any, cast
 
 import numpy as np
 import torch
+from nexuml.core.components import EvalAlgorithmDefinition, EvalBuildContext
 from nexuml.core.discovery import eval_algorithm
 from nexuml.evaluation.algorithm import EvalAlgorithm
 from nexuml.evaluation.storage import ReservoirTensorDictBuffer
@@ -19,15 +20,27 @@ logger = logging.getLogger(__name__)
 
 
 @eval_algorithm("tsne_visualizer")
-class tSNEVisualizer(EvalAlgorithm):
+class tSNEVisualizer(EvalAlgorithmDefinition):
     """Visualizes latent space using t-SNE or UMAP projection.
 
     Uses reservoir sampling to handle large datasets efficiently.
     Train and test samples are projected together and colored by label/split.
     """
 
-    type_key = "tsne_visualizer"
+    max_samples: int = 2_000
+    perplexity: int = 30
+    storage_backend: str = "memory"
+    storage_path: str | None = None
 
+    def build(self, context: EvalBuildContext) -> EvalAlgorithm:
+        return _tSNEVisualizerRuntime(
+            feature_key=context.feature_key or "latent",
+            label_key=context.label_key or "class",
+            **self.model_dump(),
+        )
+
+
+class _tSNEVisualizerRuntime(EvalAlgorithm):
     def __init__(
         self,
         feature_key: str = "latent",

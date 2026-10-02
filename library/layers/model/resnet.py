@@ -6,6 +6,7 @@ from typing import Any
 
 import torch
 from nexuml.core.base_layer import PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
@@ -26,7 +27,15 @@ class ResidualBlock(torch.nn.Module):
 
 
 @layer("ResNetEncoder")
-class ResNetEncoder(PipelineLayer):
+class ResNetEncoder(LayerDefinition):
+    width: int = 32
+    depth: int = 2
+
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _ResNetEncoderRuntime(**context.runtime_kwargs(), **self.model_dump())
+
+
+class _ResNetEncoderRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],

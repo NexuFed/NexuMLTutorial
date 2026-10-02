@@ -2,12 +2,32 @@
 
 import pandas as pd
 import torchvision
+from nexuml.core.components import DataSourceDefinition
 from nexuml.core.discovery import data_source
 from nexuml.data.dataset import NexuDataset
 
 
-@data_source("MNISTDataset")
-class MNISTDataset(NexuDataset):
+@data_source("TutorialMNISTDataset")
+class MNISTDataset(DataSourceDefinition):
+    root: str = "data/mnist"
+    train: bool = True
+    download: bool = True
+
+    def build(self) -> NexuDataset:
+        return _MNISTDatasetRuntime(**self.model_dump())
+
+
+@data_source("TutorialFashionMNISTDataset")
+class FashionMNISTDataset(MNISTDataset):
+    root: str = "data/fashion_mnist"
+
+    def build(self) -> NexuDataset:
+        return _MNISTDatasetRuntime(
+            dataset_type=torchvision.datasets.FashionMNIST, **self.model_dump()
+        )
+
+
+class _MNISTDatasetRuntime(NexuDataset):
     LABEL_NAMES = ["class"]
     MODALITY = "image"
 
@@ -16,7 +36,7 @@ class MNISTDataset(NexuDataset):
         root: str = "data/mnist",
         train: bool = True,
         download: bool = True,
-        **kwargs,
+        dataset_type=None,
     ):
         """MNIST Dataset
 
@@ -26,7 +46,7 @@ class MNISTDataset(NexuDataset):
             download (bool, optional): Download MNIST to `root` if not already present. Defaults to True.
         """
 
-        data = torchvision.datasets.MNIST(
+        data = (dataset_type or torchvision.datasets.MNIST)(
             root=root,
             train=train,
             download=download,
@@ -45,5 +65,4 @@ class MNISTDataset(NexuDataset):
             meta=meta,
             label_names=self.LABEL_NAMES,
             modality=self.MODALITY,
-            **kwargs,
         )

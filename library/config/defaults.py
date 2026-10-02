@@ -1,5 +1,11 @@
-LOG_FOLDER = "logs"
-
+from lightning.pytorch.callbacks import (
+    DeviceStatsMonitor,
+    EarlyStopping,
+    LearningRateMonitor,
+    ModelCheckpoint,
+    RichProgressBar,
+)
+from nexuml.core.factory import callback, optimizer, scheduler
 from nexuml.core.types import (
     CallbackSpec,
     CheckpointLoadSpec,
@@ -9,23 +15,24 @@ from nexuml.core.types import (
     ExportSpec,
     LoggingSpec,
     MLflowSpec,
-    OptimizerSpec,
-    SchedulerSpec,
     TensorBoardSpec,
     TrainingSpec,
     TuningSpec,
 )
+from torch.optim import Adam
+from torch.optim.lr_scheduler import ConstantLR
+
+from ..evaluation.tsne import tSNEVisualizer
+
+LOG_FOLDER = "logs"
 
 
 def default_training(
     max_epochs: int = 10, batch_size: int = 64, lr=1e-3
 ) -> TrainingSpec:
     return TrainingSpec(
-        optimizer=OptimizerSpec(type="torch.optim.Adam", params={"lr": lr}),
-        scheduler=SchedulerSpec(
-            type="torch.optim.lr_scheduler.ConstantLR",
-            params={"factor": 1.0, "total_iters": 0},
-        ),
+        optimizer=optimizer(Adam, lr=lr),
+        scheduler=scheduler(ConstantLR, factor=1.0, total_iters=0),
         loss_keys={"classification_loss": 1.0},
         metric_keys=["accuracy", "f1"],
         max_epochs=max_epochs,
@@ -41,12 +48,9 @@ def default_evaluation(
         metrics=["accuracy", "f1"],
         algorithms=[
             EvalAlgorithmSpec(
-                type="tsne_visualizer",
-                params={
-                    "feature_key": feature_key,
-                    "label_key": label_key,
-                    "max_samples": 1_000,
-                },
+                algorithm=tSNEVisualizer(max_samples=1_000),
+                feature_key=feature_key,
+                label_key=label_key,
             ),
         ],
         test_result_metrics="all",
@@ -66,32 +70,21 @@ def default_logging(name: str) -> LoggingSpec:
     )
 
 
-def default_callbacks() -> list[CallbackSpec]:
+def default_callbacks(name: str) -> list[CallbackSpec]:
     return [
-        CallbackSpec(
-            type="early_stopping",
-            params={"monitor": "val/loss", "patience": 5},
+        callback(EarlyStopping, monitor="val/loss", patience=5),
+        callback(LearningRateMonitor),
+        callback(
+            ModelCheckpoint,
+            dirpath=f"{LOG_FOLDER}/checkpoints/{name}",
+            monitor="val/loss",
+            mode="min",
+            save_top_k=1,
+            filename="{epoch:02d}-{val_loss:.4f}",
+            save_last=True,
         ),
-        CallbackSpec(
-            type="lr_monitor",
-        ),
-        CallbackSpec(
-            type="checkpoint",
-            params={
-                "dirpath": f"{LOG_FOLDER}/checkpoints/cifar-resnet",
-                "monitor": "val/loss",
-                "mode": "min",
-                "save_top_k": 1,
-                "filename": "{epoch:02d}-{val_loss:.4f}",
-                "save_last": True,
-            },
-        ),
-        CallbackSpec(
-            type="rich_progress",
-        ),
-        CallbackSpec(
-            type="device_stats",
-        ),
+        callback(RichProgressBar),
+        callback(DeviceStatsMonitor),
     ]
 
 
@@ -116,5 +109,5 @@ def default_checkpoint() -> CheckpointLoadSpec:
     )
 
 
-def default_exports() -> list[ExportSpec]:
-    return [ExportSpec(kind="train_package", output="logs/models/mnist_resnet")]
+def default_exports(name: str) -> list[ExportSpec]:
+    return [ExportSpec(kind="train_package", output=f"{LOG_FOLDER}/models/{name}")]
