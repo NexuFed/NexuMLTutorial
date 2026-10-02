@@ -44,11 +44,11 @@ Do not add `library/` itself as a local library root: that imports the same comp
 | 1 | [MNIST: custom library basics](tutorials/01_mnist_from_scratch.md) | Available |
 | 2 | [Speech Commands CNN: file-backed native DALI](tutorials/02_audio_native_dali.md) | Available |
 | 3 | [Speech Commands Transformer: pipeline composition](tutorials/02_audio_native_dali.md#swap-only-the-encoder) | Available |
-| 4 | Tuning and experiment tracking | Planned |
-| 5 | Preprocessing, dataset export, and WebDataset | Planned |
-| 6 | Custom evaluation | Planned |
-| 7 | Checkpoints and transfer learning | Planned |
-| 8 | Model export and inference | Planned |
+| 4 | [Tuning and experiment tracking](tutorials/03_tuning_and_tracking.md) | Available |
+| 5 | [Preprocessing, dataset export, and WebDataset](tutorials/04_audio_preprocessing_and_export.md) | Available |
+| 6 | [Custom evaluation](tutorials/05_custom_evaluation.md) | Available |
+| 7 | [Checkpoints and transfer learning](tutorials/06_checkpoints_and_transfer_learning.md) | Available |
+| 8 | [Model export and inference](tutorials/07_model_export_and_inference.md) | Available |
 | 9 | Distributed execution after NexuML exposes a stable backend | Planned |
 
 ## Quick Commands
@@ -67,8 +67,20 @@ nexuml build configs/speech-commands-transformer.yaml
 nexuml train speech-commands-transformer --max-epochs 10
 ```
 
-The existing tuning example remains available:
+Advanced examples reuse these components. Install optional search/tracking and export runtimes:
 
 ```bash
-nexuml tune --scenario-file library/config/tune/mnist_resnet.py --n-trials 10
+uv pip install -e '.[advanced,onnx]'
+python -m library.config.tune.mnist_resnet --n-trials 2 --max-epochs 1
+python -m examples.prepare_speech_commands --device cuda --output data/prepared/speech_commands
+python -m examples.export_and_infer --source logs/models/mnist_resnet --output logs/export/mnist-first --onnx
+```
+
+Tuning uses validation-only sessions: no test dataset is included in trials. Export scripts require new destinations and explicit trained sources. Run the scripts as modules from the repository root.
+
+Focused offline checks (no dataset downloads):
+
+```bash
+uv pip install pytest
+python -m pytest tests -q
 ```

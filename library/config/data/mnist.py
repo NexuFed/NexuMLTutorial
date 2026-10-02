@@ -5,26 +5,30 @@ from __future__ import annotations
 from nexuml.core.types import DatasetSpec, DataSpec, LoaderSpec
 from nexuml.data.loaders.definitions import TorchLoader
 
-from ...data.mnist import MNISTDataset
+from ...data.mnist import MNISTDataset, FashionMNISTDataset
 
 
 def mnist_data(
-    download: bool = True, root: str = "data", num_workers: int = 4
+    download: bool = True,
+    root: str = "data",
+    num_workers: int = 4,
+    fashion: bool = False,
 ) -> DataSpec:
     """Create a DataSpec for MNIST image classification.
 
     Returns:
         DataSpec: MNIST dataset specification with fit and test splits.
     """
+    source_type = FashionMNISTDataset if fashion else MNISTDataset
     return DataSpec(
         datasets=[
             DatasetSpec(
-                source=MNISTDataset(root=str(root), train=True, download=download),
+                source=source_type(root=str(root), train=True, download=download),
                 modality="image",
                 split_type="fit",
             ),
             DatasetSpec(
-                source=MNISTDataset(root=str(root), train=False, download=download),
+                source=source_type(root=str(root), train=False, download=download),
                 modality="image",
                 split_type="test",
             ),

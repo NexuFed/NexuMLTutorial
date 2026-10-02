@@ -90,4 +90,4 @@ nexuml build configs/speech-commands-transformer.yaml
 nexuml train speech-commands-transformer --max-epochs 10
 ```
 
-These deliberately small raw-waveform models teach NexuML composition and native file loading, not state-of-the-art keyword spotting. Log-mel preprocessing and exported/WebDataset features are later learning-path stages.
+These deliberately small raw-waveform models teach NexuML composition and native file loading, not state-of-the-art keyword spotting. Continue with [GPU-capable log-mel preprocessing and exported/WebDataset features](04_audio_preprocessing_and_export.md).

@@ -39,3 +39,5 @@ features -> embeddings -> pooled_embeddings -> class_logits
 ```
 
 The built MNIST runtime holds a torchvision dataset in `dataset.data`, so NexuML treats it as an in-memory dataset. That is useful for a first example, but it intentionally does not demonstrate native DALI file loading. Continue with [the audio tutorial](02_audio_native_dali.md) for that path.
+
+Reuse this classifier for [validation-only tuning](03_tuning_and_tracking.md), [custom evaluation](05_custom_evaluation.md), [transfer learning](06_checkpoints_and_transfer_learning.md), and [verified export/inference](07_model_export_and_inference.md).

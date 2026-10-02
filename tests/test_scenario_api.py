@@ -7,13 +7,24 @@ from library.config.scenario import (
     mnist_resnet,
     speech_commands_cnn,
     speech_commands_transformer,
+    speech_commands_log_mel,
+    speech_commands_log_mel_prepared,
+    fashion_mnist_transfer,
 )
 from library.config.tune.mnist_resnet import scenario as tune_scenario
 
 
 @pytest.mark.parametrize(
     "make_scenario",
-    [mnist_resnet, speech_commands_cnn, speech_commands_transformer, tune_scenario],
+    [
+        mnist_resnet,
+        speech_commands_cnn,
+        speech_commands_transformer,
+        speech_commands_log_mel,
+        speech_commands_log_mel_prepared,
+        fashion_mnist_transfer,
+        tune_scenario,
+    ],
 )
 def test_scenario_uses_current_factory_api(make_scenario) -> None:
     scenario = make_scenario()

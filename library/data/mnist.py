@@ -17,6 +17,16 @@ class MNISTDataset(DataSourceDefinition):
         return _MNISTDatasetRuntime(**self.model_dump())
 
 
+@data_source("TutorialFashionMNISTDataset")
+class FashionMNISTDataset(MNISTDataset):
+    root: str = "data/fashion_mnist"
+
+    def build(self) -> NexuDataset:
+        return _MNISTDatasetRuntime(
+            dataset_type=torchvision.datasets.FashionMNIST, **self.model_dump()
+        )
+
+
 class _MNISTDatasetRuntime(NexuDataset):
     LABEL_NAMES = ["class"]
     MODALITY = "image"
@@ -26,6 +36,7 @@ class _MNISTDatasetRuntime(NexuDataset):
         root: str = "data/mnist",
         train: bool = True,
         download: bool = True,
+        dataset_type=None,
     ):
         """MNIST Dataset
 
@@ -35,7 +46,7 @@ class _MNISTDatasetRuntime(NexuDataset):
             download (bool, optional): Download MNIST to `root` if not already present. Defaults to True.
         """
 
-        data = torchvision.datasets.MNIST(
+        data = (dataset_type or torchvision.datasets.MNIST)(
             root=root,
             train=train,
             download=download,

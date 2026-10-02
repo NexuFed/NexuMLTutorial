@@ -1,4 +1,5 @@
 """Tutorial dataset sources."""
 
 from .mini_speech_commands import MiniSpeechCommandsDataset
-from .mnist import MNISTDataset
+from .mnist import MNISTDataset, FashionMNISTDataset
+from .exported import ExportedDataset

@@ -16,6 +16,10 @@ dependencies = [
     "torchvision>=0.15",
 ]
 
+[project.optional-dependencies]
+advanced = ["nexuml[tuning,tracking]>=0.2.1"]
+onnx = ["nexuml[export]>=0.2.1", "onnxruntime>=1.18"]
+
 [project.entry-points."nexuml.libraries"]
 nexuml-tutorial = "library"
 
