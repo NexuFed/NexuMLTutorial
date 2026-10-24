@@ -51,6 +51,17 @@ Do not add `library/` itself as a local library root: that imports the same comp
 | 8 | [Model export and inference](tutorials/07_model_export_and_inference.md) | Available |
 | 9 | Distributed execution after NexuML exposes a stable backend | Planned |
 
+## Coming Up
+
+- [ ] Bring your own dataset: CSV metadata and files, label mapping, validation, splits, and registration.
+- [ ] Augmentation and normalization: training-only transforms, deterministic validation/test preprocessing, and consistent inference preprocessing.
+- [ ] Understand model failures: misclassified samples, per-class precision/recall, class imbalance, and confidence.
+- [ ] Reproducible experiments: seeds, configuration capture, dataset identity, dependency versions, and GPU nondeterminism.
+- [ ] Troubleshooting and a CPU-first smoke test: tensor keys/shapes, missing backends, CUDA/DALI setup, and checkpoint compatibility.
+- [ ] Regression or multilabel classification beyond single-label classification.
+- [ ] Distributed training once a stable NexuML backend is available.
+- [ ] Inference service deployment once a supported serving workflow is established.
+
 ## Quick Commands
 
 ```bash
