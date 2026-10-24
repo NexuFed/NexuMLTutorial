@@ -81,7 +81,7 @@ Advanced examples reuse these components. Install optional search/tracking and e
 ```bash
 uv pip install -e '.[advanced,onnx]'
 python -m library.config.tune.mnist_resnet --n-trials 2 --max-epochs 1
-python -m examples.prepare_speech_commands --device cuda --output data/prepared/speech_commands
+python -m examples.prepare_speech_commands --backend webdataset --device cuda --output data/prepared/speech_commands
 python -m examples.export_and_infer --source logs/models/mnist_resnet --output logs/export/mnist-first --onnx
 ```
 
