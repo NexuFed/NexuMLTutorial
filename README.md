@@ -1,6 +1,6 @@
 # NexuML Tutorial
 
-This repository is a standalone external NexuML library. Every dataset, layer, evaluation, and scenario shown by the registry commands below is implemented in this repository.
+Runnable examples implemented as a standalone NexuML library. See the [NexuML documentation](https://nexufed.github.io/NexuML/) for framework concepts and API reference.
 
 ## Setup
 
@@ -10,16 +10,16 @@ source .venv/bin/activate
 uv pip install -e .
 
 export NEXUML_DATA_ROOT=$(pwd)/data
-export NEXUML_LOGS_ROOT=$(pwd)/logs
+export NEXUML_LOGS_ROOT=$(pwd)
 ```
 
-This tutorial targets NexuML's typed component and factory syntax. The `nexuml[dali]` dependency installs NexuML's supported DALI extra. Native DALI is platform-specific; before running the audio tutorial, verify that this environment reports the loader:
+Audio examples require native DALI (`nexuml[dali]`) and a compatible NVIDIA driver/CUDA runtime. Check loader registration:
 
 ```bash
 nexuml backend list data-loader
 ```
 
-On GPU systems, the installed DALI build also needs a compatible NVIDIA driver/CUDA runtime.
+Scenario log paths already include `logs/`; keep `NEXUML_LOGS_ROOT` at the repository root.
 
 ## Local Library
 
@@ -27,8 +27,6 @@ The editable install registers this library via its package entry point. Inspect
 
 ```bash
 nexuml library list
-# nexuml library add $(pwd) # already done by uv pip install -e .
-nexuml registry --help
 nexuml registry list data
 nexuml registry list layers
 nexuml registry list eval
