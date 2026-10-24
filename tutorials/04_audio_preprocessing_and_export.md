@@ -58,6 +58,8 @@ PY
 
 ## Automatic Materialization Alternative
 
+Known failure on NexuML checkout `45fae17`: export completes, but DALI reload raises `Strided data not supported`. Use the explicit export/reload commands above instead.
+
 Use a separate destination. This route defaults to NumPy and does not explicitly select CUDA for the transform:
 
 ```bash
