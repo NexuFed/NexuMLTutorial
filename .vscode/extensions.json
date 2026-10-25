@@ -1,15 +1,60 @@
 {
     "recommendations": [
-        "ms-vscode-remote.vscode-remote-extensionpack",
-        "streetsidesoftware.code-spell-checker",
-        "google.colab",
-        "ms-toolsai.datawrangler",
-        "ms-toolsai.jupyter",
-        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        // Python and Data Science
         "ms-python.python",
         "ms-python.vscode-pylance",
+        "ms-python.gather",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "redhat.vscode-yaml",
+        "bierner.markdown-mermaid",
+
+        // Code Quality
         "charliermarsh.ruff",
         "astral-sh.ty",
-        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "njpwerner.autodocstring",
+        // "bufbuild.vscode-buf",
+
+        // Git and Version Control
+        // "eamodio.gitlens",
+        // "GitHub.vscode-pull-request-github",
+        // "github.vscode-github-actions",
+
+        // AI Assistance
+        // "github.copilot",
+        // "github.copilot-chat",
+        // "ms-vscode.vscode-websearchforcopilot",
+        // "anthropic.claude-code",
+        // "Google.geminicodeassist",
+        // "Google.gemini-cli-vscode-ide-companion",
+        // "openai.chatgpt",
+        // "kilocode.kilo-code",
+        // "saoudrizwan.claude-dev",
+        // "fedaykindev.openchamber",
+        // "Blackboxapp.blackbox",
+        // "Blackboxapp.blackboxagent",
+
+        // Remote Development and Collaboration
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vsliveshare.vsliveshare",
+        "ms-vsliveshare.vsliveshare-pack",
+        // "google.colab"
+        // "anyscalecompute.ray-distributed-debugger",
+
+        // MLOps
+        "ms-toolsai.tensorboard",
+        // "lakefs.lakefs-dvc",
+        // "lakefs.lakefs-dvc-pack",
+        "Optuna.optuna-dashboard",
+        "ms-toolsai.datawrangler",
+        // "ZenML.zenml-vscode",
+
+        // Utilities
+        "mutantdino.resourcemonitor",
+        "vscode-icons-team.vscode-icons",
+        "FanaticPythoner.better-todo-tree",
     ]
 }

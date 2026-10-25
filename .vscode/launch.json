@@ -26,9 +26,11 @@
             "id": "experimentConfigScenario",
             "type": "pickString",
             "description": "Choose the experiment config",
-            "default": "mnist-resnet",
+            "default": "tutorial-mnist-resnet",
             "options": [
-                "mnist-resnet",
+                "tutorial-mnist-resnet",
+                "speech-commands-cnn",
+                "speech-commands-transformer"
             ]
         },
         {

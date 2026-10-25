@@ -222,3 +222,7 @@ data/
 logs/
 .experiments/
 configs/
+!library/data/
+!library/data/*.py
+!library/config/data/
+!library/config/data/*.py

@@ -1,0 +1,110 @@
+# kubectl config set-context --current --namespace=<username>
+# kubectl apply -f .k8s/job.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dev-job
+  # namespace: <username>
+spec:
+  ttlSecondsAfterFinished: 100
+  backoffLimit: 2
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: OnFailure
+      # runtimeClassName: nvidia
+
+      imagePullSecrets:
+      - name: regcred
+
+      volumes:
+      - name: shared-mem
+        emptyDir:
+          sizeLimit: 4Gi
+          medium: Memory
+      - name: local-storage
+        emptyDir: {}
+
+      - name: seaweedfs
+        persistentVolumeClaim:
+          claimName: seaweedfs
+      - name: seaweedfs-lnn
+        persistentVolumeClaim:
+          claimName: seaweedfs-lnn
+
+      containers:
+        - name: nexuml
+          image: ghcr.io/nexufed/nexuml:0.2.1-cuda12.8.1
+          command: ["/bin/bash", "-c"]
+          args: 
+          - |
+            echo "=========================";
+            tail -f /dev/null;
+            
+
+          imagePullPolicy: IfNotPresent
+
+          env:
+          - name: OMP_NUM_THREADS
+            value: "1"
+          - name: NEXUML_DATA_ROOT
+            value: /mnt/data
+          - name: NEXUML_LOGS_ROOT
+            value: /mnt/logs
+
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+
+          volumeMounts:
+          - name: shared-mem
+            mountPath: /dev/shm
+          - name: local-storage
+            mountPath: /mnt/local
+
+          - name: seaweedfs-lnn
+            subPathExpr: data
+            mountPath: /mnt/data
+          - name: seaweedfs-lnn
+            subPathExpr: logs
+            mountPath: /mnt/logs
+          - name: seaweedfs-lnn
+            mountPath: /workspaces
+            subPathExpr: code
+          - name: seaweedfs-lnn
+            mountPath: /workspace
+            subPathExpr: code/nexuml
+          - name: seaweedfs
+            mountPath: /home/nexuadmin
+            subPathExpr: user
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              # - key: "nvidia.com/gpu.memory"
+              #   operator: Gt
+              #   values: ["12000"]
+              # - key: "nvidia.com/cuda.runtime.major"
+              #   operator: Gt
+              #   values: ["11"]
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                  # - NVIDIA-GH200-144G-HBM3e # GH200
+                  # - Tesla-V100-SXM2-32GB # DGX
+                  # - NVIDIA-RTX-4000-Ada-Generation # CIP-GPU
+                  # - NVIDIA-GeForce-RTX-5080 # student-worker-7
+                  # - NVIDIA-GeForce-RTX-5070 # student-worker-2
+                  # - NVIDIA-GeForce-RTX-4090 # student-worker-5
+                  # - NVIDIA-GeForce-RTX-4070 # student-worker-6
+                  - NVIDIA-GeForce-RTX-3060 # student-worker-4
+                  - NVIDIA-GeForce-RTX-2070-SUPER # student-worker-1
+                  - NVIDIA-GeForce-RTX-2070 # student-worker-3
+          
+          # nodeSelector:
+          #   kubernetes.io/hostname: student-worker-4

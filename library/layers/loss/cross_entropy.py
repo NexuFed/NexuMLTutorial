@@ -1,4 +1,4 @@
-"""Classification loss layer."""
+"""Single-label multiclass classification loss."""
 
 from __future__ import annotations
 
@@ -6,11 +6,17 @@ from typing import Any
 
 import torch
 from nexuml.core.base_layer import PipelineLayer
+from nexuml.core.components import LayerBuildContext, LayerDefinition
 from nexuml.core.discovery import layer
 
 
-@layer("BCELoss")
-class BCELoss(PipelineLayer):
+@layer("CrossEntropyLoss")
+class CrossEntropyLoss(LayerDefinition):
+    def build(self, context: LayerBuildContext) -> PipelineLayer:
+        return _CrossEntropyLossRuntime(**context.runtime_kwargs())
+
+
+class _CrossEntropyLossRuntime(PipelineLayer):
     def __init__(
         self,
         input_sizes: dict[str, tuple],
@@ -26,7 +32,7 @@ class BCELoss(PipelineLayer):
             label_key=label_key,
             **kwargs,
         )
-        self.loss = torch.nn.BCELoss()
+        self.loss = torch.nn.CrossEntropyLoss(reduction="none")
 
     def forward_tensor(
         self,
@@ -34,8 +40,5 @@ class BCELoss(PipelineLayer):
         y: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if y is None:
-            # No labels available (e.g. shape-propagation dummy pass) - output zero loss.
-            return torch.zeros(x.shape[0], device=x.device, requires_grad=True)
-        if y.ndim == 1:
-            y = torch.nn.functional.one_hot(y.long(), num_classes=x.shape[-1])
-        return self.loss(x, y.float()).expand(x.shape[0])
+            return x.sum(dim=-1) * 0
+        return self.loss(x, y.long().reshape(-1))

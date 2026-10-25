@@ -1,93 +1,113 @@
-"""Optuna tuning file.
-
-Exposes:
-  scenario()     - base ScenarioSpec (default mnist_resnet architecture)
-  build(**arch)  - factory rebuilding scenario from architecture params
-  SEARCH_SPACE   - Optuna hyperparameter architecture search space
-  TUNING_SPEC    - tuning configuration
-
-"""
+"""Validation-only Optuna search using NexuML's public session lifecycle."""
 
 from __future__ import annotations
 
-from nexuml.core.types import ScenarioSpec, TuningSpec
+import argparse
+import math
+from pathlib import Path
 
-from library.config.defaults import LOG_FOLDER
+from lightning import seed_everything
+from nexuml.core.types import ScenarioSpec
+from nexuml.training.lightning import NexuSession
+
+from library.config.defaults import default_callbacks, default_logging
 from library.config.scenario.mnist_resnet import mnist_resnet
 
-SEARCH_SPACE = {
-    "batch_size": {"type": "categorical", "choices": [16, 32, 64]},
-    "training.lr": {
-        "type": "float",
-        "low": 1e-4,
-        "high": 1e-2,
-        "log": True,
-    },
-    # Architecture params below are grouped under dotted prefixes ("encoder.*",
-    # "pooling.*", "head.*") so the tuner nests them into dicts and forwards
-    # them to build(**arch_params) instead of setting them as scalar overrides.
-    "encoder.width": {"type": "categorical", "choices": [16, 32, 64]},
-    "encoder.depth": {"type": "categorical", "choices": [1, 2, 3, 4]},
-    "pooling.type": {
-        "type": "categorical",
-        "choices": ["GlobalAveragePooling", "GlobalMaxPooling"],
-    },
-    "head.use_dropout": {
-        "type": "categorical",
-        "choices": [True, False],
-        "when": {
-            True: {
-                "head.dropout": {"type": "float", "low": 0.1, "high": 0.5},
-            },
-        },
-    },
-}
 
-TUNING_SPEC = TuningSpec(
-    n_trials=20,
-    directions=["maximize"],
-    # NOTE: "test/f1" is used because nexuml's train() runs fit() then test()
-    # sequentially, and Trainer.logged_metrics only retains the last loop's
-    # keys - "val/f1" doesn't survive. This means the sweep selects
-    # architectures by test-set score, which is test-set leakage. Fine for
-    # this demo; a real project should tune on a validation-only metric.
-    metric_key="test/f1",
-    storage=f"{LOG_FOLDER}/optuna/optuna.log",
-    prune=False,
-)
-
-
-def scenario() -> ScenarioSpec:
-    """Return the default base scenario for tuning."""
-    return build(
-        batch_size=32,
-    )
-
-
-def build(
-    batch_size: int,
-    encoder: dict | None = None,
-    pooling: dict | None = None,
-    head: dict | None = None,
+def scenario(
+    lr: float = 1e-3,
+    batch_size: int = 32,
+    encoder_width: int = 32,
+    max_epochs: int = 1,
+    name: str = "mnist_validation",
+    include_test: bool = False,
 ) -> ScenarioSpec:
-    """Build a scenario from sampled hyperparameters and architecture params.
-
-    Returns:
-        ScenarioSpec: Assembled scenario with tuning spec attached.
-    """
-    encoder = encoder or {}
-    pooling = pooling or {}
-    head = head or {}
-    scenario_spec = mnist_resnet(
+    spec = mnist_resnet(
+        lr=lr,
         batch_size=batch_size,
-        max_epochs=10,
-        encoder_width=encoder.get("width", 32),
-        encoder_depth=encoder.get("depth", 2),
-        pooling_type=pooling.get("type", "GlobalAveragePooling"),
-        head_dropout=head.get("dropout", 0.0),
+        encoder_width=encoder_width,
+        max_epochs=max_epochs,
     )
-    scenario_spec.tuning = TUNING_SPEC
-    # The tuner disables the trainer's progress bar; drop the rich_progress
-    # callback so it doesn't conflict with that setting.
-    scenario_spec.callbacks = [c for c in scenario_spec.callbacks if c.type != "rich_progress"]
-    return scenario_spec
+    spec.name = name
+    spec.data.train_split, spec.data.val_split, spec.data.test_split = 0.8, 0.2, 0.0
+    if not include_test:
+        spec.data.datasets = [spec.data.datasets[0]]
+    spec.data.loader.num_workers = 0
+    spec.evaluation.algorithms = []
+    spec.exports = []
+    spec.tuning = None
+    spec.logging = default_logging(name)
+    spec.callbacks = default_callbacks(name)
+    return spec
+
+
+def objective(trial, max_epochs: int, study_name: str) -> float:
+    params = {
+        "lr": trial.suggest_float("lr", 1e-4, 1e-2, log=True),
+        "batch_size": trial.suggest_categorical("batch_size", [16, 32, 64]),
+        "encoder_width": trial.suggest_categorical("encoder_width", [16, 32, 64]),
+    }
+    seed_everything(42, workers=True)
+    spec = scenario(
+        **params, max_epochs=max_epochs, name=f"{study_name}_trial_{trial.number}"
+    )
+    spec.logging.mlflow.experiment_name = study_name
+    session = NexuSession.from_scenario(spec).setup()
+    for logger in session.trainer_loggers:
+        logger.log_hyperparams(params)
+    results = session.fit().validate()
+    if not results or "val/loss" not in results[0]:
+        raise ValueError(
+            "Expected val/loss from NexuSession.validate(); no test fallback."
+        )
+    loss = float(results[0]["val/loss"])
+    if not math.isfinite(loss):
+        raise ValueError(f"Validation objective is not finite: {loss}")
+    for logger in session.trainer_loggers:
+        logger.finalize("success")
+    return loss
+
+
+def tune(n_trials: int, max_epochs: int, study_name: str) -> None:
+    import optuna
+
+    if n_trials < 1 or max_epochs < 1:
+        raise ValueError("n_trials and max_epochs must be positive")
+    Path("logs/optuna").mkdir(parents=True, exist_ok=True)
+    study = optuna.create_study(
+        study_name=study_name,
+        storage="sqlite:///logs/optuna/mnist.db",
+        direction="minimize",
+        sampler=optuna.samplers.TPESampler(seed=42),
+    )
+    study.optimize(
+        lambda trial: objective(trial, max_epochs, study_name), n_trials=n_trials
+    )
+    print(
+        f"Best val/loss (minimize): {study.best_value}; parameters: {study.best_params}"
+    )
+
+    # Only the chosen configuration sees the official held-out test source.
+    seed_everything(42, workers=True)
+    selected = scenario(
+        **study.best_params,
+        max_epochs=max_epochs,
+        name=f"{study_name}_selected",
+        include_test=True,
+    )
+    selected.logging.mlflow.experiment_name = study_name
+    session = NexuSession.from_scenario(selected).setup().fit()
+    print("Selected model test results:", session.test())
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--n-trials", type=int, default=2)
+    parser.add_argument("--max-epochs", type=int, default=1)
+    parser.add_argument("--study-name", default="mnist-validation")
+    args = parser.parse_args()
+    tune(args.n_trials, args.max_epochs, args.study_name)
+
+
+if __name__ == "__main__":
+    main()
