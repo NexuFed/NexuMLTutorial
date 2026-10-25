@@ -20,8 +20,6 @@ python -m examples.checkpoints_and_transfer resume --checkpoint logs/checkpoints
 
 Resume restores model, optimizer/scheduler, epoch/step, and compatible callbacks. Two means two total epochs, not two additional epochs. Keep the original data and compatible callback paths.
 
-Use the example script on the tested NexuML checkout: checkpoint-only CLI resume ignores the `--max-epochs` override.
-
 ## Transfer to FashionMNIST
 
 ```bash

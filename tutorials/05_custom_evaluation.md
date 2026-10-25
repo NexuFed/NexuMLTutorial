@@ -12,6 +12,7 @@ from nexuml.core.types import EvalAlgorithmSpec
 from nexuml.training.lightning import NexuSession
 
 spec = mnist_resnet(max_epochs=1)
+spec.data.loader.num_workers = 0  # stdin scripts cannot be reopened by spawned workers.
 spec.evaluation.algorithms = [EvalAlgorithmSpec(
     algorithm=ConfusionMatrix(class_names=[str(i) for i in range(10)]),
     feature_key="class_logits", label_key="class",
